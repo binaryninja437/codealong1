@@ -20,20 +20,16 @@ RX0,RX1,RY0,RY1 = 200,520,490,640               # work region (entirely on the l
 OX0,OX1,OY0,OY1 = 190,530,470,745               # finger probe region (reaches lid edge)
 
 # ---------- logo layer (static) ----------
-# The gold sits on a pale pink card, so it carries a black keyline to hold its
-# edge.  Built at source resolution and area-resampled, and composited
-# premultiplied: the outline contributes coverage but no colour, so the gold
-# stays untouched where it overlaps.
-OUTLINE_PX=1.5
+# Printed in the box's own ink rather than gold: the colour below is sampled from
+# the core of the STROILI mark in frame 0, so the new logo is the same material as
+# everything else the printer put on this lid.  Flat, like the mark it replaces.
+# Composited premultiplied so the antialiased edges stay clean.
+INK=np.array([25.,30.,90.],np.float32)          # BGR, measured off the original print
 lg=cv2.imread('logo_crop.png',cv2.IMREAD_UNCHANGED)
 lw=int(round(LOGO_W)); lh=int(round(LOGO_W*lg.shape[0]/lg.shape[1]))
 _A=lg[:,:,3].astype(np.float32)/255.0
-_r=max(1,int(round(OUTLINE_PX*lg.shape[1]/LOGO_W)))
-_key=cv2.dilate(_A,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2*_r+1,2*_r+1)))
-_tot=_A+_key*(1.0-_A)
-_prem=lg[:,:,:3].astype(np.float32)*_A[...,None]
-_prem=cv2.resize(_prem,(lw,lh),interpolation=cv2.INTER_AREA)
-_tot=cv2.resize(_tot,(lw,lh),interpolation=cv2.INTER_AREA)
+_prem=cv2.resize(INK*_A[...,None],(lw,lh),interpolation=cv2.INTER_AREA)
+_tot=cv2.resize(_A,(lw,lh),interpolation=cv2.INTER_AREA)
 lx,ly=int(round(CX-lw/2.0)),int(round(CY-lh/2.0))
 logo_prem=np.zeros((H,W,3),np.float32); logo_a=np.zeros((H,W),np.float32)
 logo_prem[ly:ly+lh,lx:lx+lw]=_prem
