@@ -20,14 +20,25 @@ RX0,RX1,RY0,RY1 = 200,520,490,640               # work region (entirely on the l
 OX0,OX1,OY0,OY1 = 190,530,470,745               # finger probe region (reaches lid edge)
 
 # ---------- logo layer (static) ----------
+# The gold sits on a pale pink card, so it carries a black keyline to hold its
+# edge.  Built at source resolution and area-resampled, and composited
+# premultiplied: the outline contributes coverage but no colour, so the gold
+# stays untouched where it overlaps.
+OUTLINE_PX=1.5
 lg=cv2.imread('logo_crop.png',cv2.IMREAD_UNCHANGED)
 lw=int(round(LOGO_W)); lh=int(round(LOGO_W*lg.shape[0]/lg.shape[1]))
-lg=cv2.resize(lg,(lw,lh),interpolation=cv2.INTER_AREA)
+_A=lg[:,:,3].astype(np.float32)/255.0
+_r=max(1,int(round(OUTLINE_PX*lg.shape[1]/LOGO_W)))
+_key=cv2.dilate(_A,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2*_r+1,2*_r+1)))
+_tot=_A+_key*(1.0-_A)
+_prem=lg[:,:,:3].astype(np.float32)*_A[...,None]
+_prem=cv2.resize(_prem,(lw,lh),interpolation=cv2.INTER_AREA)
+_tot=cv2.resize(_tot,(lw,lh),interpolation=cv2.INTER_AREA)
 lx,ly=int(round(CX-lw/2.0)),int(round(CY-lh/2.0))
-logo_rgb=np.zeros((H,W,3),np.float32); logo_a=np.zeros((H,W),np.float32)
-logo_rgb[ly:ly+lh,lx:lx+lw]=lg[:,:,:3]
-logo_a[ly:ly+lh,lx:lx+lw]=lg[:,:,3]/255.0
-logo_rgb=cv2.GaussianBlur(logo_rgb,(0,0),0.55)  # match the lens softness of the plate
+logo_prem=np.zeros((H,W,3),np.float32); logo_a=np.zeros((H,W),np.float32)
+logo_prem[ly:ly+lh,lx:lx+lw]=_prem
+logo_a[ly:ly+lh,lx:lx+lw]=_tot
+logo_prem=cv2.GaussianBlur(logo_prem,(0,0),0.55)  # match the lens softness of the plate
 logo_a=cv2.GaussianBlur(logo_a,(0,0),0.55)
 
 # ---------- clean lid plate: frame 0 with the STROILI mark painted out ----------
@@ -87,9 +98,8 @@ def render(i):
     if i not in SEATED: return F[i]
     occ=finger_alpha(F[i])
     sh=shading(F[i],occ)
-    clean=PLATE*sh                       # lid, unbranded, lit like this frame
-    a=logo_a[...,None]
-    branded=logo_rgb*sh*a+clean*(1-a)    # ink takes the same light as the card
+    clean=PLATE*sh                                   # lid, unbranded, lit like this frame
+    branded=logo_prem*sh+clean*(1-logo_a[...,None])  # ink takes the same light as the card
     # match the footage grain so the rebuilt patch is not a frozen still
     g=np.random.default_rng(1000+i).normal(0.0,1.6,branded.shape).astype(np.float32)
     out=(branded+g)*REG+f*(1-REG)

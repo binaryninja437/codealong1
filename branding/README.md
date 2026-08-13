@@ -15,6 +15,11 @@ crosses the lid and the shadow it casts:
   the burgundy nail to +0.13. Ramping both ends gives a soft edge that follows the real
   defocus, and the finger is composited back over the logo.
 - The logo is lit by the same ratio map, so it darkens under the shadow like ink on card.
+- **Black keyline** — gold on a pale pink card needs an edge to hold it, so the logo
+  carries a 1.5 px black outline (`OUTLINE_PX`). It is built by dilating the alpha at
+  source resolution and area-resampling, and composited premultiplied so the outline
+  adds coverage but no colour and the gold is untouched where the two overlap. Much
+  past 2 px the counters in JEWELLERS start closing up at this size.
 
 Run from a directory holding `frames.npy` (the decoded source) and `logo_crop.png`
 (`baba_jewellers_logo.png` cropped to its alpha bounds), then mux the PNGs with the
