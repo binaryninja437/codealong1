@@ -15,11 +15,13 @@ crosses the lid and the shadow it casts:
   the burgundy nail to +0.13. Ramping both ends gives a soft edge that follows the real
   defocus, and the finger is composited back over the logo.
 - The logo is lit by the same ratio map, so it darkens under the shadow like ink on card.
-- **Ink colour** — the logo is printed in the box's own ink, not gold. `INK` is BGR
-  (25, 30, 90), sampled from the core of the STROILI mark in frame 0, and laid down
-  flat like the mark it replaces, premultiplied so the antialiased edges stay clean.
-  Gold read as an overlay on this pale card; matching the printer's ink puts the new
-  logo in the same material as everything else on the lid.
+- **Ink colour** — the logo is printed, not overlaid. `INK` is BGR (28, 22, 100), a
+  deep maroon carrying the same density as the box's own print (measured at BGR
+  25/30/90 off the core of the STROILI mark in frame 0, a warmer brown). It is laid
+  down flat like the mark it replaces, premultiplied so the antialiased edges stay
+  clean. Gold read as an overlay on this pale card; ink at the printer's density
+  reads as part of the lid. Lighter, redder values (around R150) lose authority at
+  this size — the mark stops holding its own against the pink.
 
 Run from a directory holding `frames.npy` (the decoded source) and `logo_crop.png`
 (`baba_jewellers_logo.png` cropped to its alpha bounds), then mux the PNGs with the

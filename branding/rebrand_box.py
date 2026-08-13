@@ -20,11 +20,11 @@ RX0,RX1,RY0,RY1 = 200,520,490,640               # work region (entirely on the l
 OX0,OX1,OY0,OY1 = 190,530,470,745               # finger probe region (reaches lid edge)
 
 # ---------- logo layer (static) ----------
-# Printed in the box's own ink rather than gold: the colour below is sampled from
-# the core of the STROILI mark in frame 0, so the new logo is the same material as
-# everything else the printer put on this lid.  Flat, like the mark it replaces.
-# Composited premultiplied so the antialiased edges stay clean.
-INK=np.array([25.,30.,90.],np.float32)          # BGR, measured off the original print
+# Printed rather than overlaid: a deep maroon at the same ink density as the mark it
+# replaces (the box's own print measures BGR 25/30/90, a warmer brown), so the logo
+# reads as part of the lid instead of sitting on it.  Flat, and composited
+# premultiplied so the antialiased edges stay clean.
+INK=np.array([28.,22.,100.],np.float32)         # BGR deep maroon
 lg=cv2.imread('logo_crop.png',cv2.IMREAD_UNCHANGED)
 lw=int(round(LOGO_W)); lh=int(round(LOGO_W*lg.shape[0]/lg.shape[1]))
 _A=lg[:,:,3].astype(np.float32)/255.0
